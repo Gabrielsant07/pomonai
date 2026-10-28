@@ -1,0 +1,2 @@
+
+ALTER TABLE duvida DROP COLUMN IF EXISTS data_hora;
