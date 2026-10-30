@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8">
@@ -12,14 +12,25 @@
             color: #fff;
             padding: 24px;
         }
-        
+
         h1 {
             text-align: center;
+            margin-bottom: 20px;
         }
 
         .faq {
             max-width: 720px;
             margin: 0 auto;
+        }
+
+        .dashboard-header {
+            background: #141a6b;
+            border: 2px solid #4da3ff;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
         }
 
         details {
@@ -33,35 +44,171 @@
         summary {
             cursor: pointer;
             font-weight: bold;
+            font-size: 16px;
         }
 
         .info {
-            margin: 10px 0 0;
+            margin: 10px 0 6px;
             color: #9fc4ff;
-            font-size: 14px;
+            font-size: 13px;
         }
 
-        .resp {
-            margin: 8px 0 0;
-            color: #cfe6ff;
+        .form-resposta {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 12px;
+            color: #9fc4ff;
+            font-weight: bold;
+        }
+
+        textarea {
+            width: 100%;
+            height: 60px;
+            background: #0a0d4c;
+            border: 1px solid #4da3ff;
+            border-radius: 6px;
+            color: #fff;
+            padding: 8px;
+            box-sizing: border-box;
+            resize: none;
+        }
+
+        .botoes-acao {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-responder {
+            background: #4da3ff;
+            color: #0a0d4c;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-responder:hover {
+            background: #80c0ff;
+        }
+
+        .btn-excluir {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-excluir:hover {
+            background: #f87171;
         }
     </style>
 </head>
 
 <body>
+
     <h1>FAQ Java FullStack</h1>
+
     <div class="faq">
+        <!-- Dashboard informando total de dúvidas -->
+        <div class="dashboard-header">
+            👨‍🏫 Dashboard do Professor<br>
+            <span>Total de Perguntas: <span th:text="${#lists.size(duvidas)}">0</span></span>
+        </div>
+
+        <!-- Lista dinâmica de dúvidas do Thymeleaf -->
         <details th:each="d : ${duvidas}">
             <summary th:text="${d.texto}">Texto da dúvida</summary>
+            
             <p class="info">
                 Enviada em
                 <span th:text="${#temporals.format(d.dataHora, 'dd/MM/yyyy HH:mm')}">17/10/2026 09:00</span>
             </p>
-            <p class="resp">Resposta em breve: o professor responde na aula.</p>
+
+            <!-- Formulário unificado para Responder, Editar e Excluir -->
+            <div class="form-resposta">
+                <label th:text="${d.resposta != null and !d.resposta.isBlank()} ? 'Editar Resposta:' : 'Escrever Resposta:'">Resposta:</label>
+                <textarea th:id="'resposta-' + ${d.id}" placeholder="Escreva a sua resposta..." th:text="${d.resposta}"></textarea>
+                
+                <div class="botoes-acao">
+                    <button class="btn-responder" th:onclick="'enviarResposta(' + ${d.id} + ')'" th:text="${d.resposta != null and !d.resposta.isBlank()} ? 'Atualizar Resposta' : 'Responder Dúvida'">Responder</button>
+                    <button class="btn-excluir" th:onclick="'excluirDuvida(' + ${d.id} + ')'">Eliminar Dúvida</button>
+                </div>
+            </div>
         </details>
-        
-        <p th:if="${#lists.isEmpty(duvidas)}">Nenhuma dúvida cadastrada ainda.</p>
+
+        <p th:if="${#lists.isEmpty(duvidas)}" style="text-align: center;">Nenhuma dúvida cadastrada ainda.</p>
     </div>
+
+    <script>
+        // Função para criar ou atualizar a resposta (PUT /duvida)
+        async function enviarResposta(id) {
+            const campoTexto = document.getElementById(`resposta-${id}`);
+            const respostaTexto = campoTexto.value.trim();
+
+            if (!respostaTexto) {
+                alert("Por favor, digite uma resposta antes de enviar.");
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8090/duvida', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        id: id,
+                        resposta: respostaTexto
+                    })
+                });
+
+                if (response.ok) {
+                    alert("Operação realizada com sucesso!");
+                    window.location.reload();
+                } else {
+                    alert("Erro ao salvar a resposta.");
+                }
+            } catch (error) {
+                console.error("Erro na requisição:", error);
+                alert("Não foi possível conectar ao servidor.");
+            }
+        }
+
+        // Função para apagar a dúvida (DELETE /duvida/{id})
+        async function excluirDuvida(id) {
+            if (!confirm("Tem certeza de que deseja eliminar esta dúvida permanentemente?")) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:8090/duvida/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok || response.status === 204) {
+                    alert("Dúvida eliminada com sucesso!");
+                    window.location.reload();
+                } else {
+                    alert("Erro ao eliminar a dúvida.");
+                }
+            } catch (error) {
+                console.error("Erro na requisição:", error);
+                alert("Não foi possível conectar ao servidor.");
+            }
+        }
+    </script>
+
 </body>
 
 </html>

@@ -1,0 +1,1 @@
+ALTER TABLE duvida ADD COLUMN resposta TEXT;

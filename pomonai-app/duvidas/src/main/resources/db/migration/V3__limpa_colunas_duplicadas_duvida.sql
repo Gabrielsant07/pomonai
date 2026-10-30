@@ -1,2 +1,2 @@
-
-ALTER TABLE duvida DROP COLUMN IF EXISTS data_hora;
+-- A coluna data_hora nao existe.
+-- A coluna dataHora deve ser preservada.

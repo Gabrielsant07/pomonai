@@ -1,4 +1,5 @@
 package br.com.senai.duvidas;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -12,40 +13,56 @@ import java.time.ZoneId;
 @Table(name="duvida")
 @Entity(name ="Duvida")
 public class Duvida {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY ) 
+    @GeneratedValue(strategy = GenerationType.IDENTITY) 
     private Long id;  
 
     @Column(columnDefinition = "TEXT")
     private String texto; 
 
-    @Column(name="dataHora",nullable=false)
+    @Column(name="dataHora", nullable=false)
     private LocalDateTime dataHora;
 
-    public Duvida(){ }
-    public Duvida(DadosCadastroDuvida dados){
-       this.texto = dados.texto();
-       this.dataHora = LocalDateTime.now(ZoneId.of("America/Sao_Paulo"));
+    @Column(columnDefinition = "TEXT")
+    private String resposta;
+
+    public Duvida() { }
+
+    public Duvida(DadosCadastroDuvida dados) {
+        this.texto = dados.texto();
+        this.dataHora = LocalDateTime.now(ZoneId.of("America/Sao_Paulo"));
     }
-    public void setId(Long id) {
-        this.id = id;
-    }
+
     public Long getId() {
         return id;
     }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getTexto() {
         return texto;
     }
+
     public void setTexto(String texto) {
         this.texto = texto;
     }
+
     public LocalDateTime getDataHora() {
         return dataHora;
     }
+
     public void setDataHora(LocalDateTime dataHora) {
         this.dataHora = dataHora;
     }
-    
 
-    
+    public String getResposta() {
+        return resposta;
+    }
+
+    public void setResposta(String resposta) {
+        this.resposta = resposta;
+    }
 }
